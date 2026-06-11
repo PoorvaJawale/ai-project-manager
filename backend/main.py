@@ -253,6 +253,23 @@ async def get_project(session_id: str):
         "created_at": str(row[10])
     }
 
+@app.post("/log-error")
+async def log_error(data: dict):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO error_logs (workflow_name, error_message, session_id) VALUES (%s, %s, %s)",
+        (
+            data.get("workflow_name", "unknown"),
+            data.get("error_message", "unknown"),
+            data.get("session_id", "unknown")
+        )
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"success": True}
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
