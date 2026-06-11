@@ -1,8 +1,7 @@
 import json
+import os
 from openai import OpenAI
 from state import ProjectState
-
-client = OpenAI()
 
 SYSTEM_DESIGN_PROMPT = """You are a senior software architect.
 Given a project roadmap, create a complete system design.
@@ -43,6 +42,7 @@ def run_system_design(state: ProjectState) -> ProjectState:
     if state.get("error"):
         return state
     try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[

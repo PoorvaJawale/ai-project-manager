@@ -1,8 +1,7 @@
 import json
+import os
 from openai import OpenAI
 from state import ProjectState
-
-client = OpenAI()
 
 PLANNER_PROMPT = """You are a senior technical project planner.
 Given a business requirement, create a structured project roadmap.
@@ -30,6 +29,7 @@ Return ONLY valid JSON with this exact structure:
 
 def run_planner(state: ProjectState) -> ProjectState:
     try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[

@@ -1,8 +1,7 @@
 import json
+import os
 from openai import OpenAI
 from state import ProjectState
-
-client = OpenAI()
 
 TASK_GEN_PROMPT = """You are a technical project manager creating GitHub issues.
 Given a project roadmap and system design, create development tasks.
@@ -28,6 +27,7 @@ def run_task_gen(state: ProjectState) -> ProjectState:
     if state.get("error"):
         return state
     try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
