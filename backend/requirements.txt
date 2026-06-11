@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+openai
+langchain
+langgraph
+langchain-openai
+python-dotenv
+psycopg2-binary
+pypdf2
+python-docx
+pydantic
+requests
