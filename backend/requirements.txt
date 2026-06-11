@@ -10,3 +10,4 @@ pypdf2
 python-docx
 pydantic
 requests
+python-multipart
