@@ -1,5 +1,4 @@
 'use client'
-import { SignInButton, SignedIn, SignedOut } from '@clerk/nextjs'
 import Link from 'next/link'
 
 export default function Home() {
@@ -13,20 +12,16 @@ export default function Home() {
           Transform your business requirements into full project plans, system designs, and GitHub issues — automatically.
         </p>
         <div className="flex gap-4 justify-center">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors">
-                Get Started
-              </button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <Link href="/dashboard">
-              <button className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors">
-                Go to Dashboard
-              </button>
-            </Link>
-          </SignedIn>
+          <Link href="/dashboard">
+            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors">
+              Get Started
+            </button>
+          </Link>
+          <Link href="/history">
+            <button className="border border-blue-600 text-blue-600 px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition-colors">
+              View History
+            </button>
+          </Link>
         </div>
         <div className="mt-16 grid grid-cols-3 gap-6 text-left">
           <div className="bg-white rounded-xl p-6 shadow-sm">
