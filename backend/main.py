@@ -161,6 +161,13 @@ async def create_github_issues(data: dict):
     if check.status_code != 200:
         raise HTTPException(status_code=400, detail=f"Cannot access repo '{repo}': GitHub API {check.status_code} - {check.json().get('message', '')}")
 
+    # Use the exact repo full_name from GitHub's response to avoid casing issues
+    repo = check.json().get("full_name", repo)
+
+    # Check if issues are enabled
+    if not check.json().get("has_issues", False):
+        raise HTTPException(status_code=400, detail=f"Issues are disabled on repo '{repo}'. Enable them in repo Settings → Features → Issues.")
+
     created_issues = []
     errors = []
 
