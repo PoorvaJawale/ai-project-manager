@@ -56,7 +56,11 @@ export default function Dashboard() {
               session_id: res.data.session_id || crypto.randomUUID()
             }
           )
-          setGithubIssues(issuesRes.data)
+          const issueData = issuesRes.data
+          setGithubIssues(issueData)
+          if (issueData.created === 0 && issueData.errors?.length > 0) {
+            setError(`GitHub issues failed: ${issueData.errors[0]}`)
+          }
         } catch (issueErr: any) {
           setError(`Project generated but GitHub issues failed: ${issueErr.response?.data?.detail || issueErr.message}`)
         }

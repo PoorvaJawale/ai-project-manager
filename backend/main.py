@@ -154,7 +154,8 @@ async def create_github_issues(data: dict):
     }
     
     created_issues = []
-    
+    errors = []
+
     for task in tasks:
         try:
             response = requests.post(
@@ -187,6 +188,7 @@ async def create_github_issues(data: dict):
                 time.sleep(0.5)
             else:
                 error_msg = f"GitHub API {response.status_code}: {response.text}"
+                errors.append(error_msg)
                 conn = get_db()
                 cur = conn.cursor()
                 cur.execute(
@@ -196,7 +198,9 @@ async def create_github_issues(data: dict):
                 conn.commit()
                 cur.close()
                 conn.close()
+                break  # All tasks will get same error, no point continuing
         except Exception as e:
+            errors.append(str(e))
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
@@ -206,11 +210,13 @@ async def create_github_issues(data: dict):
             conn.commit()
             cur.close()
             conn.close()
+            break
     
     return {
         "created": len(created_issues),
         "issues": created_issues,
-        "total_attempted": len(tasks)
+        "total_attempted": len(tasks),
+        "errors": errors
     }
 
 @app.get("/projects/{user_id}")
