@@ -35,12 +35,13 @@ export default function Dashboard() {
       }
 
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL}/generate-project`,
+        `${process.env.NEXT_PUBLIC_API_URL}/generate`,
         {
           requirement: requirementText,
-          user_id: user?.id,
+          user_id: user?.id || 'anonymous',
           github_repo: githubRepo
-        }
+        },
+        { timeout: 120000 }
       )
 
       setResult(res.data)
