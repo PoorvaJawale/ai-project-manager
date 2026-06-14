@@ -321,14 +321,15 @@ async def get_project(session_id: str):
         raise HTTPException(status_code=404, detail="Project not found")
     
     return {
-        "session_id": row[2],
-        "user_id": row[3],
-        "requirement": row[4],
-        "roadmap": row[5],
-        "system_design": row[6],
-        "tasks": row[7],
-        "status": row[9],
-        "created_at": str(row[10])
+        "session_id": row[1],
+        "user_id": row[2],
+        "requirement": row[3],
+        "roadmap": row[4],
+        "system_design": row[5],
+        "tasks": row[6],
+        "github_repo": row[7],
+        "status": row[8],
+        "created_at": str(row[9])
     }
 
 @app.post("/log-error")
