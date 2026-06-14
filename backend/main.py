@@ -77,12 +77,15 @@ async def generate_project(req: GenerateRequest):
     session_id = str(uuid.uuid4())
 
     requirement = req.requirement
-    # If a GitHub repo is provided, enrich the requirement with repo context
+    # If a GitHub repo is provided, fetch its content and use as primary context
     if req.github_repo:
         token = os.getenv("GITHUB_TOKEN", "")
         repo_context = fetch_repo_context(req.github_repo, token)
         if repo_context:
-            requirement = f"GitHub Repository Context:\n{repo_context}\n\nAdditional instructions: {requirement}" if requirement else f"Generate a project plan based on this GitHub repository:\n{repo_context}"
+            if requirement and len(requirement.strip()) > 20:
+                requirement = f"GitHub Repository Context:\n{repo_context}\n\nAdditional user instructions: {requirement}"
+            else:
+                requirement = f"Generate a comprehensive project plan based on this GitHub repository:\n{repo_context}"
 
     # Save initial record
     conn = get_db()
