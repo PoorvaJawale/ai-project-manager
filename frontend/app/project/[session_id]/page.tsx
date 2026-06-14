@@ -24,8 +24,8 @@ export default function ProjectPage() {
   if (!project) return null
 
   const safeParse = (val: any) => {
-    if (!val) return null
-    if (typeof val === 'string') { try { return JSON.parse(val) } catch { return val } }
+    if (!val || val === '') return null
+    if (typeof val === 'string') { try { return JSON.parse(val) } catch { return null } }
     return val
   }
   const roadmap = safeParse(project.roadmap)
