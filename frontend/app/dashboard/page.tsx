@@ -45,14 +45,14 @@ export default function Dashboard() {
 
       setResult(res.data)
 
-      if (githubRepo && res.data.tasks && res.data.session_id) {
+      if (githubRepo && res.data.tasks) {
         try {
           const issuesRes = await axios.post(
             `${process.env.NEXT_PUBLIC_API_URL}/create-github-issues`,
             {
               tasks: res.data.tasks,
               github_repo: githubRepo,
-              session_id: res.data.session_id
+              session_id: res.data.session_id || crypto.randomUUID()
             }
           )
           setGithubIssues(issuesRes.data)
