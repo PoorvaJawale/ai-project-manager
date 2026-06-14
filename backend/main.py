@@ -162,11 +162,10 @@ async def create_github_issues(data: dict):
                 headers=headers,
                 json={
                     "title": task["title"],
-                    "body": task["body"],
-                    "labels": task.get("labels", [])
+                    "body": task.get("body", ""),
                 }
             )
-            
+
             if response.status_code == 201:
                 issue_data = response.json()
                 created_issues.append({
@@ -174,8 +173,7 @@ async def create_github_issues(data: dict):
                     "url": issue_data["html_url"],
                     "title": task["title"]
                 })
-                
-                # Log to DB
+
                 conn = get_db()
                 cur = conn.cursor()
                 cur.execute(
@@ -185,10 +183,20 @@ async def create_github_issues(data: dict):
                 conn.commit()
                 cur.close()
                 conn.close()
-                
-                time.sleep(0.5)  # Rate limit protection
+
+                time.sleep(0.5)
+            else:
+                error_msg = f"GitHub API {response.status_code}: {response.text}"
+                conn = get_db()
+                cur = conn.cursor()
+                cur.execute(
+                    "INSERT INTO error_logs (workflow_name, error_message, session_id) VALUES (%s, %s, %s)",
+                    ("github_issue_creation", error_msg, session_id)
+                )
+                conn.commit()
+                cur.close()
+                conn.close()
         except Exception as e:
-            # Log error but continue with other issues
             conn = get_db()
             cur = conn.cursor()
             cur.execute(
@@ -199,7 +207,11 @@ async def create_github_issues(data: dict):
             cur.close()
             conn.close()
     
-    return {"created": len(created_issues), "issues": created_issues}
+    return {
+        "created": len(created_issues),
+        "issues": created_issues,
+        "total_attempted": len(tasks)
+    }
 
 @app.get("/projects/{user_id}")
 async def get_user_projects(user_id: str):
