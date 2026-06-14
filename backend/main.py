@@ -38,10 +38,52 @@ class FileProcessRequest(BaseModel):
     session_id: str
     user_id: str
 
+def fetch_repo_context(github_repo: str, token: str) -> str:
+    """Fetch README and file tree from a GitHub repo to use as project context."""
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+    repo = github_repo.strip()
+    if "github.com/" in repo:
+        repo = repo.split("github.com/")[-1].rstrip("/")
+
+    context_parts = []
+
+    # Fetch README
+    readme_res = requests.get(f"https://api.github.com/repos/{repo}/readme", headers=headers)
+    if readme_res.status_code == 200:
+        import base64
+        content = base64.b64decode(readme_res.json()["content"]).decode("utf-8", errors="ignore")
+        context_parts.append(f"README:\n{content[:3000]}")
+
+    # Fetch repo metadata
+    meta_res = requests.get(f"https://api.github.com/repos/{repo}", headers=headers)
+    if meta_res.status_code == 200:
+        meta = meta_res.json()
+        desc = meta.get("description") or ""
+        lang = meta.get("language") or ""
+        topics = ", ".join(meta.get("topics", []))
+        context_parts.append(f"Repo: {repo}\nDescription: {desc}\nPrimary language: {lang}\nTopics: {topics}")
+
+    # Fetch top-level file tree
+    tree_res = requests.get(f"https://api.github.com/repos/{repo}/contents", headers=headers)
+    if tree_res.status_code == 200:
+        files = [f["name"] for f in tree_res.json() if isinstance(tree_res.json(), list)]
+        context_parts.append(f"Files: {', '.join(files)}")
+
+    return "\n\n".join(context_parts)
+
+
 @app.post("/generate")
 async def generate_project(req: GenerateRequest):
     session_id = str(uuid.uuid4())
-    
+
+    requirement = req.requirement
+    # If a GitHub repo is provided, enrich the requirement with repo context
+    if req.github_repo:
+        token = os.getenv("GITHUB_TOKEN", "")
+        repo_context = fetch_repo_context(req.github_repo, token)
+        if repo_context:
+            requirement = f"GitHub Repository Context:\n{repo_context}\n\nAdditional instructions: {requirement}" if requirement else f"Generate a project plan based on this GitHub repository:\n{repo_context}"
+
     # Save initial record
     conn = get_db()
     cur = conn.cursor()
@@ -55,7 +97,7 @@ async def generate_project(req: GenerateRequest):
     initial_state = ProjectState(
         session_id=session_id,
         user_id=req.user_id,
-        requirement=req.requirement,
+        requirement=requirement,
         roadmap=None,
         system_design=None,
         tasks=None,
