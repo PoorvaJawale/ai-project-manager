@@ -144,7 +144,10 @@ async def upload_file(
 @app.post("/create-github-issues")
 async def create_github_issues(data: dict):
     tasks = data["tasks"]
-    repo = data["github_repo"]  # format: "username/repo-name"
+    repo = data["github_repo"].strip()
+    # Accept full URLs or just "owner/repo"
+    if "github.com/" in repo:
+        repo = repo.split("github.com/")[-1].rstrip("/")
     token = os.getenv("GITHUB_TOKEN")
     session_id = data["session_id"]
     
@@ -153,6 +156,11 @@ async def create_github_issues(data: dict):
         "Accept": "application/vnd.github.v3+json"
     }
     
+    # Verify repo exists and is accessible before looping
+    check = requests.get(f"https://api.github.com/repos/{repo}", headers=headers)
+    if check.status_code != 200:
+        raise HTTPException(status_code=400, detail=f"Cannot access repo '{repo}': GitHub API {check.status_code} - {check.json().get('message', '')}")
+
     created_issues = []
     errors = []
 
