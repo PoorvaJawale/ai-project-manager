@@ -11,12 +11,14 @@ export default function Dashboard() {
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [githubIssues, setGithubIssues] = useState<{ created: number; issues: any[] } | null>(null)
 
   const handleGenerate = async () => {
     if (!requirement && !file) return
     setLoading(true)
     setError('')
-    
+    setGithubIssues(null)
+
     try {
       let requirementText = requirement
 
@@ -24,7 +26,7 @@ export default function Dashboard() {
         const formData = new FormData()
         formData.append('file', file)
         formData.append('user_id', user?.id || '')
-        
+
         const uploadRes = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/upload-file`,
           formData
@@ -40,8 +42,24 @@ export default function Dashboard() {
           github_repo: githubRepo
         }
       )
-      
+
       setResult(res.data)
+
+      if (githubRepo && res.data.tasks && res.data.session_id) {
+        try {
+          const issuesRes = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL}/create-github-issues`,
+            {
+              tasks: res.data.tasks,
+              github_repo: githubRepo,
+              session_id: res.data.session_id
+            }
+          )
+          setGithubIssues(issuesRes.data)
+        } catch (issueErr: any) {
+          setError(`Project generated but GitHub issues failed: ${issueErr.response?.data?.detail || issueErr.message}`)
+        }
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Generation failed. Please try again.')
     } finally {
@@ -103,6 +121,26 @@ export default function Dashboard() {
           <ResultSection title="Project Roadmap" data={result.roadmap} />
           <ResultSection title="System Design" data={result.system_design} />
           <TasksSection tasks={result.tasks} />
+          {githubIssues && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+              <h2 className="text-xl font-semibold text-green-800 mb-2">
+                GitHub Issues Created ({githubIssues.created})
+              </h2>
+              <div className="space-y-1">
+                {githubIssues.issues.map((issue, i) => (
+                  <a
+                    key={i}
+                    href={issue.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-sm text-green-700 hover:underline"
+                  >
+                    #{issue.number} {issue.title}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
