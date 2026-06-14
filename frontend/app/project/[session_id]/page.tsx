@@ -23,9 +23,14 @@ export default function ProjectPage() {
   if (error) return <div className="p-6 text-red-500">{error}</div>
   if (!project) return null
 
-  const roadmap = typeof project.roadmap === 'string' ? JSON.parse(project.roadmap) : project.roadmap
-  const systemDesign = typeof project.system_design === 'string' ? JSON.parse(project.system_design) : project.system_design
-  const tasks = typeof project.tasks === 'string' ? JSON.parse(project.tasks) : project.tasks
+  const safeParse = (val: any) => {
+    if (!val) return null
+    if (typeof val === 'string') { try { return JSON.parse(val) } catch { return val } }
+    return val
+  }
+  const roadmap = safeParse(project.roadmap)
+  const systemDesign = safeParse(project.system_design)
+  const tasks = safeParse(project.tasks)
 
   return (
     <div className="max-w-4xl mx-auto p-6">
