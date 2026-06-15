@@ -26,12 +26,14 @@ export default function Dashboard() {
         const formData = new FormData()
         formData.append('file', file)
         formData.append('user_id', user?.id || '')
+        formData.append('github_repo', githubRepo)
 
         const uploadRes = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload-file`,
-          formData
+          `${process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL}/upload-document`,
+          formData,
+          { timeout: 120000 }
         )
-        requirementText = uploadRes.data.full_text
+        requirementText = uploadRes.data.result?.full_text || uploadRes.data.full_text || ''
       }
 
       const res = await axios.post(

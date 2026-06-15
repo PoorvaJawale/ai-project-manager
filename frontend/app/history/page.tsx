@@ -11,8 +11,10 @@ export default function History() {
 
   useEffect(() => {
     if (user?.id) {
-      axios.get(`${process.env.NEXT_PUBLIC_API_URL}/projects/${user.id}`)
+      axios.get(`${process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL}/history?user_id=${user.id}`)
         .then(res => setProjects(res.data.projects))
+        .catch(() => axios.get(`${process.env.NEXT_PUBLIC_API_URL}/projects/${user.id}`)
+          .then(res => setProjects(res.data.projects)))
         .finally(() => setLoading(false))
     }
   }, [user])
